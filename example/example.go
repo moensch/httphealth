@@ -20,19 +20,42 @@ func main() {
 
 	srv.RegisterCheck("pidactive", IsPidActive)
 	srv.RegisterCheck("failing", FailingCheck)
+	srv.RegisterCachingCheck("cachethis", SomeCheck, 300)
 	srv.Run()
 }
 
-func IsPidActive() (int, string) {
+func IsPidActive() httphealth.CheckResponse {
+	resp := httphealth.CheckResponse{}
+
 	p, err := os.FindProcess(13755)
 
 	if err != nil {
-		return httphealth.STATUS_CRITICAL, err.Error()
+		resp.Status = httphealth.STATUS_CRITICAL
+		resp.Text = err.Error()
+
+		return resp
 	}
 
-	return httphealth.STATUS_OK, strconv.Itoa(p.Pid)
+	resp.Status = httphealth.STATUS_OK
+	resp.Text = strconv.Itoa(p.Pid)
+
+	return resp
 }
 
-func FailingCheck() (int, string) {
-	return httphealth.STATUS_CRITICAL, "something bad"
+func FailingCheck() httphealth.CheckResponse {
+	resp := httphealth.CheckResponse{
+		Status: httphealth.STATUS_CRITICAL,
+		Text:   "Some error message",
+	}
+
+	return resp
+}
+
+func SomeCheck() httphealth.CheckResponse {
+	resp := httphealth.CheckResponse{
+		Status: httphealth.STATUS_WARN,
+		Text:   "this failed and is cached for 300 seconds",
+	}
+
+	return resp
 }

@@ -2,3 +2,12 @@
 [listen]
 port = 9000
 address = "0.0.0.0"
+
+[checks]
+
+[checks.apache]
+command = "ps aux | grep [h]ttpasdf"
+cache = "5m"
+
+[checks.failcmd]
+command = "/bin/false"
